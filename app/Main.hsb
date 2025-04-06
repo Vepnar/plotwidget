@@ -1,0 +1,85 @@
+{-# LANGUAGE TemplateHaskell #-}
+module Main where
+
+-- Core libraries
+import Control.Concurrent (forkIO, threadDelay)
+
+-- Lens library
+import Lens.Micro ((^.))
+import Lens.Micro.Mtl
+import Lens.Micro.TH (makeLenses)
+
+-- Brick library
+import Brick 
+  ( App(..)
+  , Widget
+  , customMainWithDefaultVty
+  , halt
+  , showFirstCursor
+  )
+import Brick.AttrMap (attrMap)
+import Brick.BChan
+import Brick.Types 
+  ( BrickEvent(..)
+  , EventM
+  )
+import Brick.Widgets.Plot    
+import Control.Monad (void, forever)
+
+import qualified Graphics.Vty as V
+
+data CustomEvent = Counter deriving Show
+
+data St =
+    St { _stLastBrickEvent :: Maybe (BrickEvent () CustomEvent)
+       , _stCounter :: Int
+       }
+
+makeLenses ''St
+
+drawUI :: St -> [Widget ()]
+drawUI st = [scatter Nothing (zip x ySin) str "This text uses the global default attribute."
+         , withAttr (attrName "foundFull")]
+    where
+        end = (628.0 + fromIntegral (st^.stCounter`mod`628)) * 0.01 :: Double
+        start = 0.01*(fromIntegral $ st^.stCounter`mod`628)
+        x = [start, (start +0.01) .. end]
+        ySin = map sin x
+        yCos = map cos x
+
+
+appEvent :: BrickEvent () CustomEvent -> EventM () St ()
+appEvent e =
+    case e of
+        VtyEvent (V.EvKey V.KEsc []) -> halt
+        VtyEvent _ -> stLastBrickEvent .= (Just e)
+        AppEvent Counter -> do
+            stCounter %= (+1)
+            stLastBrickEvent .= (Just e)
+        _ -> return ()
+
+initialState :: St
+initialState =
+    St { _stLastBrickEvent = Nothing
+       , _stCounter = 0
+       }
+
+theApp :: App St CustomEvent ()
+theApp =
+    App { appDraw = drawUI
+        , appChooseCursor = showFirstCursor
+        , appHandleEvent = appEvent
+        , appStartEvent = return ()
+        , appAttrMap = const $ attrMap V.defAttr []
+        }
+
+main :: IO ()
+main = do
+    chan <- newBChan 10
+
+    void $ forkIO $ forever $ do
+        writeBChan chan Counter
+        threadDelay 1000
+
+    (_, vty) <- customMainWithDefaultVty (Just chan) theApp initialState
+    V.shutdown vty

@@ -1,0 +1,104 @@
+cabal-version: 2.2
+
+-- This file has been generated from package.yaml by hpack version 0.36.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           plotwidget
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/plotwidget#readme>
+homepage:       https://github.com/githubuser/plotwidget#readme
+bug-reports:    https://github.com/githubuser/plotwidget/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2025 Author name here
+license:        BSD-3-Clause
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    CHANGELOG.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/plotwidget
+
+library
+  exposed-modules:
+      Brick.Widgets.Plot.Core
+      Brick.Widgets.Plot.Internal
+      Brick.Widgets.Plot.Types
+      Lib
+  other-modules:
+      Paths_plotwidget
+  autogen-modules:
+      Paths_plotwidget
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  build-depends:
+      base >=4.7 && <5
+    , brick >=2.8
+    , containers
+    , microlens >=0.3.0.0
+    , microlens-mtl
+    , microlens-platform
+    , microlens-th
+    , text
+    , vector >=0.13.2.0
+    , vty >=6.0
+    , vty-crossplatform
+  default-language: Haskell2010
+
+executable plotwidget-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_plotwidget
+  autogen-modules:
+      Paths_plotwidget
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , brick >=2.8
+    , containers
+    , microlens >=0.3.0.0
+    , microlens-mtl
+    , microlens-platform
+    , microlens-th
+    , plotwidget
+    , text
+    , vector >=0.13.2.0
+    , vty >=6.0
+    , vty-crossplatform
+  default-language: Haskell2010
+
+test-suite plotwidget-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      InternalSpec
+      Paths_plotwidget
+  autogen-modules:
+      Paths_plotwidget
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      HUnit
+    , base >=4.7 && <5
+    , brick >=2.8
+    , containers
+    , hspec
+    , microlens >=0.3.0.0
+    , microlens-mtl
+    , microlens-platform
+    , microlens-th
+    , plotwidget
+    , test-framework
+    , text
+    , vector >=0.13.2.0
+    , vty >=6.0
+    , vty-crossplatform
+  default-language: Haskell2010
