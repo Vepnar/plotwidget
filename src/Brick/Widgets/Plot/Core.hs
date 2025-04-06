@@ -10,19 +10,6 @@ module Brick.Widgets.Plot.Core (
     area,
     area',
     area'',
-
-    redStar,
-    blueStar,
-    greenStar,
-    whiteStar,
-    redCirc,
-    blueCirc,
-    greenCirc,
-    whiteCirc,
-    redDot,
-    blueDot,
-    greenDot,
-    whiteDot,
 )
 
 where
@@ -53,13 +40,13 @@ computeDimensions xs = Dims xm xM ym yM
 plot :: Int -> Int -> Canvas
 plot w h 
   | h < 1 || w < 1 = error "plot: Invalid canvas shape"
-  | otherwise = Canvas (V.replicate (w*h) Nothing) w h 
+  | otherwise = Canvas (V.replicate (w*h) Empty) w h 
 
 paint :: Canvas -> Widget n
 paint (Canvas pix w _) = let 
     paintRow px
       | null px = VT.emptyImage
-      | otherwise = VT.horizCat (imgPixel <$> ll) <-> paintRow r
+      | otherwise = VT.horizCat (img <$> ll) <-> paintRow r
       where 
         ll = V.toList l
         (l, r) = V.splitAt w px 
@@ -70,7 +57,7 @@ area :: Dimensions -> Pixel -> [Point] -> Canvas -> Canvas
 area d p xs c@(Canvas px w h) = runST $ do
   v <- V.unsafeThaw px
   forM_ uP $ \(x, y) -> 
-          forM_ [y..(h-1)] $ \i -> MV.modify v (coords x i) p
+          forM_ [y..(h-1)] $ \i -> MV.modify v  (p <>) (coords x i)
   frz <- V.unsafeFreeze v
   return $ Canvas frz w h
   where
@@ -88,7 +75,7 @@ area'' = area' whiteStar
 scatter :: Dimensions -> Pixel -> [Point] -> Canvas -> Canvas
 scatter d p xs c@(Canvas px w h) = runST $ do
   v <- V.unsafeThaw px
-  forM_ (mapMaybe (toIndex c d) xs) $ \x -> MV.write v x p  
+  forM_ (mapMaybe (toIndex c d) xs) $ \x -> MV.modify v (p <>) x  
   frz <- V.unsafeFreeze v
   return $ Canvas frz w h
 
@@ -99,18 +86,3 @@ scatter' p xs c = scatter d p xs c
 
 scatter'' :: [Point] -> Canvas -> Canvas
 scatter'' xs c = scatter' whiteStar xs c
-
-redStar = Just (VT.red, '*') :: Pixel
-blueStar = Just (VT.blue, '*') :: Pixel
-greenStar = Just (VT.green, '*') :: Pixel
-whiteStar = Just (VT.white, '*') :: Pixel
-
-redDot = Just (VT.red, '⋅') :: Pixel
-blueDot = Just (VT.blue, '⋅') :: Pixel
-greenDot = Just (VT.green, '⋅') :: Pixel
-whiteDot = Just (VT.white, '⋅') :: Pixel
-
-redCirc = Just (VT.red, 'o') :: Pixel
-blueCirc = Just (VT.blue, 'o') :: Pixel
-greenCirc = Just (VT.green, 'o') :: Pixel
-whiteCirc = Just (VT.white, 'o') :: Pixel

@@ -1,22 +1,15 @@
 module Brick.Widgets.Plot.Internal (
-  imgPixel,
+  matrixIndex,
   toIndex,
   scale,
-
   img,
-  
   validDimensions,
   inDimensions,
-
-  matrixIndex,
-
   groupFst,
   uniqueFstMaxSnd,
  )
 where
 
-
---https://github.com/BoboTiG/py-candlestick-chart/blob/main/src/candlestick_chart/constants.py
 import qualified Data.Vector as V
 import qualified Data.Vector as VM
 import qualified Graphics.Vty as VT
@@ -33,12 +26,7 @@ scale vm vM s x
     | vm == vM = error "scale: minVal and maxVal cannot be equal (division by zero)"
     | otherwise = (x - vm) * fromIntegral s / (vM - vm)
 
-imgPixel :: Pixel -> VT.Image
-imgPixel Nothing = VT.char VT.defAttr ' '
-imgPixel (Just (color,char)) = VT.char attr char 
-  where attr = VT.defAttr {VT.attrForeColor = VT.SetTo color}
-
-img :: PixelData -> VT.Image
+img :: Pixel -> VT.Image
 img Empty = VT.char VT.defAttr ' '
 img (Colored color char) = VT.char attr char
   where attr = VT.defAttr {VT.attrForeColor = VT.SetTo color}
