@@ -25,10 +25,10 @@ source-repository head
 
 library
   exposed-modules:
+      Brick.Widgets.Plot
       Brick.Widgets.Plot.Core
       Brick.Widgets.Plot.Internal
       Brick.Widgets.Plot.Types
-      Lib
   other-modules:
       Paths_plotwidget
   autogen-modules:

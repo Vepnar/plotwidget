@@ -20,7 +20,7 @@ import Brick.AttrMap (attrMap)
 import Brick.BChan
 import Brick.Types 
 
-import Brick.Widgets.Plot.Core  
+import Brick.Widgets.Plot
 import Control.Monad (void, forever)
 
 import qualified Graphics.Vty as V
