@@ -55,7 +55,7 @@ paint (Canvas pix w _) = let
 
 area :: Dimensions -> Pixel -> [Point] -> Canvas -> Canvas
 area d p xs c@(Canvas px w h) = runST $ do
-  v <- V.unsafeThaw px
+  v <- V.thaw px
   forM_ uP $ \(x, y) -> 
           forM_ [y..(h-1)] $ \i -> MV.modify v  (p <>) (coords x i)
   frz <- V.unsafeFreeze v
@@ -74,7 +74,7 @@ area'' = area' whiteStar
 
 scatter :: Dimensions -> Pixel -> [Point] -> Canvas -> Canvas
 scatter d p xs c@(Canvas px w h) = runST $ do
-  v <- V.unsafeThaw px
+  v <- V.thaw px
   forM_ (mapMaybe (toIndex c d) xs) $ \x -> MV.modify v (p <>) x  
   frz <- V.unsafeFreeze v
   return $ Canvas frz w h

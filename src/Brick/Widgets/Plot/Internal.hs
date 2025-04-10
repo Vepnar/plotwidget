@@ -16,7 +16,7 @@ import qualified Graphics.Vty as VT
 
 import Brick.Widgets.Plot.Types
 
-import Data.List (groupBy,maximumBy,sortBy,unfoldr)
+import Data.List (groupBy,maximumBy,sortBy)
 
 import Data.Ord (comparing)
 import Data.Maybe
@@ -28,9 +28,9 @@ scale vm vM s x
 
 img :: Pixel -> VT.Image
 img Empty = VT.char VT.defAttr ' '
-img (Colored color char) = VT.char attr char
-  where attr = VT.defAttr {VT.attrForeColor = VT.SetTo color}
-img (Natural char) = VT.char VT.defAttr char
+img (Colored co cr) = VT.char attr cr
+  where attr = VT.defAttr {VT.attrForeColor = VT.SetTo co}
+img (Natural cr) = VT.char VT.defAttr cr
 
 
 -- Maybe remove
