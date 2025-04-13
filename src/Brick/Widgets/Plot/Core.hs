@@ -5,11 +5,9 @@ module Brick.Widgets.Plot.Core (
 
     scatter,
     scatter',
-    scatter'',
 
     area,
     area',
-    area'',
 )
 
 where
@@ -24,6 +22,7 @@ import qualified Data.Vector.Mutable as MV
 
 import Control.Monad (forM_)
 import Control.Monad.ST (runST)
+import Control.Monad.State
 
 import Brick.Widgets.Plot.Internal
 import Brick.Widgets.Plot.Types
@@ -40,49 +39,40 @@ computeDimensions xs = Dims xm xM ym yM
 plot :: Int -> Int -> Canvas
 plot w h 
   | h < 1 || w < 1 = error "plot: Invalid canvas shape"
-  | otherwise = Canvas (V.replicate (w*h) Empty) w h 
+  | otherwise =Canvas (V.replicate (w*h) Empty) w h
+
 
 paint :: Canvas -> Widget n
-paint (Canvas pix w _) = let 
-    paintRow px
-      | null px = VT.emptyImage
-      | otherwise = VT.horizCat (img <$> ll) <-> paintRow r
-      where 
-        ll = V.toList l
-        (l, r) = V.splitAt w px 
-    in Widget Fixed Fixed $ do 
-      return $ Result (paintRow pix) [] [] [] Brick.BorderMap.empty
+paint (Canvas px w _) = let 
+    paintRow xs
+      | null xs = VT.emptyImage
+      | otherwise = VT.horizCat (V.toList $ V.map img $ V.take w xs) <-> paintRow (V.drop w xs)
+    in Widget Fixed Fixed $ return $ Result (paintRow px) [] [] [] Brick.BorderMap.empty
 
-area :: Dimensions -> Pixel -> [Point] -> Canvas -> Canvas
-area d p xs c@(Canvas px w h) = runST $ do
-  v <- V.thaw px
-  forM_ uP $ \(x, y) -> 
-          forM_ [y..(h-1)] $ \i -> MV.modify v  (p <>) (coords x i)
-  frz <- V.unsafeFreeze v
-  return $ Canvas frz w h
-  where
-    coords x y = x + w * y
-    uP = uniqueFstMaxSnd (mapMaybe (matrixIndex c d) xs )
-
-area' :: Pixel -> [Point] -> Canvas -> Canvas
-area' p xs = area d p xs
+area :: Dimensions ->  Pixel -> [Point] -> CanvasState Dimensions
+area d p xs = state $ \c -> (d, update c)
   where 
-    d = computeDimensions xs
+    uP c = uniqueFstMaxSnd (mapMaybe (matrixIndex c d) xs )
+    update c@(Canvas px w h) = runST $ do
+      v <- V.thaw px
+      forM_ (uP c) $ \(x, y) -> 
+              forM_ [y..(h-1)] $ \i -> MV.modify v  (p <>) (x + i * w)
+      frz <- V.unsafeFreeze v
+      return (Canvas frz w h)
+      
+area' :: Pixel -> [Point] -> CanvasState Dimensions
+area' p xs = area d p xs
+  where d = computeDimensions xs
 
-area'' :: [Point] -> Canvas -> Canvas
-area'' = area' whiteStar
+scatter :: Dimensions -> Pixel -> [Point] -> CanvasState Dimensions
+scatter d p xs = state $ \c -> (d, update c)
+  where
+    update c = runST $ do
+      v <- V.thaw (pixels c)
+      forM_ (mapMaybe (toIndex c d) xs) $ \x -> MV.modify v (p <>) x  
+      frz <- V.unsafeFreeze v
+      return (Canvas frz (width c) (height c))
 
-scatter :: Dimensions -> Pixel -> [Point] -> Canvas -> Canvas
-scatter d p xs c@(Canvas px w h) = runST $ do
-  v <- V.thaw px
-  forM_ (mapMaybe (toIndex c d) xs) $ \x -> MV.modify v (p <>) x  
-  frz <- V.unsafeFreeze v
-  return $ Canvas frz w h
-
-scatter' :: Pixel -> [Point] -> Canvas -> Canvas
-scatter' p xs c = scatter d p xs c
-    where 
-        d = computeDimensions xs
-
-scatter'' :: [Point] -> Canvas -> Canvas
-scatter'' xs c = scatter' whiteStar xs c
+scatter' :: Pixel -> [Point] -> CanvasState Dimensions
+scatter' p xs = scatter d p xs
+  where d = computeDimensions xs

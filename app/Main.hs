@@ -22,6 +22,7 @@ import Brick.Types
 
 import Brick.Widgets.Plot
 import Control.Monad (void, forever)
+import Control.Monad.State
 
 import qualified Graphics.Vty as V
 
@@ -35,21 +36,23 @@ data St =
 makeLenses ''St
 
 
-plotUI :: St -> Widget n
-plotUI st = Widget Greedy Greedy $ do
-    ctx <- getContext
-    let 
+wave :: Int -> CanvasState ()
+wave n = area' redCirc sinWave >> area' whiteCirc cosWave >> return ()
+    where 
         x = [start, (start +0.01) .. end]
-        end = (628.0 + fromIntegral (st^.stCounter`mod`628)) * 0.01 :: Double
-        start = 0.01*(fromIntegral $ st^.stCounter`mod`628)
-        ySin = map sin x
-        yCos = map cos x
-    render $ paint $ area' redCirc (zip x ySin) $ area'' (zip x yCos) $ plot (ctx^.availWidthL) (ctx^.availHeightL) 
+        end = 6.28 + start
+        start = nModulo *0.01
+        nModulo = fromIntegral $ n `mod` 628
+        sinWave = zip x $ map sin x
+        cosWave = zip x $ map cos x
+
+plotUI :: St -> Widget n
+plotUI st = Widget Greedy Greedy $ 
+    getContext >>= \ctx -> 
+    render $ paint $ execState (wave (st^.stCounter)) $ plot (ctx^.availWidthL) (ctx^.availHeightL)
 
 drawUI :: St -> [Widget ()]
 drawUI st = [plotUI st]
-
-
 
 appEvent :: BrickEvent () CustomEvent -> EventM () St ()
 appEvent e =
