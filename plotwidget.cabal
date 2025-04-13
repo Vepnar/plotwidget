@@ -6,12 +6,12 @@ cabal-version: 2.2
 
 name:           plotwidget
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/plotwidget#readme>
-homepage:       https://github.com/githubuser/plotwidget#readme
-bug-reports:    https://github.com/githubuser/plotwidget/issues
-author:         Author name here
+description:    Please see the README on GitHub at <https://github.com/Vepnar/plotwidget#readme>
+homepage:       https://github.com/Vepnar/plotwidget#readme
+bug-reports:    https://github.com/Vepnar/plotwidget/issues
+author:         Arjan de Haan
 maintainer:     example@example.com
-copyright:      2025 Author name here
+copyright:      2025 Arjan de Haan
 license:        BSD-3-Clause
 license-file:   LICENSE
 build-type:     Simple
@@ -21,7 +21,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/plotwidget
+  location: https://github.com/Vepnar/plotwidget
 
 library
   exposed-modules:
@@ -44,6 +44,7 @@ library
     , microlens-mtl
     , microlens-platform
     , microlens-th
+    , mtl
     , text
     , vector >=0.13.2.0
     , vty >=6.0
@@ -67,6 +68,7 @@ executable plotwidget-exe
     , microlens-mtl
     , microlens-platform
     , microlens-th
+    , mtl
     , plotwidget
     , text
     , vector >=0.13.2.0
@@ -95,6 +97,7 @@ test-suite plotwidget-test
     , microlens-mtl
     , microlens-platform
     , microlens-th
+    , mtl
     , plotwidget
     , test-framework
     , text
