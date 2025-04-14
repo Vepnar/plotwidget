@@ -37,7 +37,7 @@ makeLenses ''St
 
 
 wave :: Int -> CanvasState ()
-wave n = area' redCirc sinWave >> area' whiteCirc cosWave >> return ()
+wave n = area [Marker redCirc] sinWave >> area' cosWave >> return ()
     where 
         x = [start, (start +0.01) .. end]
         end = 6.28 + start
@@ -83,9 +83,7 @@ main :: IO ()
 main = do
     chan <- newBChan 10
 
-    void $ forkIO $ forever $ do
-        writeBChan chan Counter
-        threadDelay 1000
+    void $ forkIO $ forever $ writeBChan chan Counter >> threadDelay 10000
 
     (_, vty) <- customMainWithDefaultVty (Just chan) theApp initialState
     V.shutdown vty
