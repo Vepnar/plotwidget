@@ -10,6 +10,12 @@ module Brick.Widgets.Plot.Internal (
   getDimensions,
   computeDimensions,
   getMarker,
+  candlePixel,
+  updatePixels,
+  getUpperSymbol,
+  getLowerSymbol,
+  scaleCandles,
+  takeLastN,
  )
 where
 
@@ -147,3 +153,52 @@ groupFst = groupBy (\(x,_) (y,_) -> x == y)
 
 uniqueFstMaxSnd :: (Ord a) => [(a,a)] -> [(a,a)]
 uniqueFstMaxSnd = map (maximumBy (comparing snd)) . groupFst . sortBy (comparing fst)
+
+scaleCandles :: Canvas -> [Candle] -> [Candle]
+scaleCandles canvas candles = map scaleCandle candles
+  where
+    scaleCandle (Candle op cl hi lo) =
+      Candle (scaler op) (scaler cl) (scaler hi) (scaler lo)
+    scaler value = scale minY maxY (height canvas) value
+    minY = minimum $ map candleLow candles
+    maxY = maximum $ map candleHigh candles
+    
+getUpperSymbol :: Double -> Candle -> Char
+getUpperSymbol y (Candle op cl hi _)
+  | mDiff > 0.75 = '┃'
+  | mDiff > 0.25 && hDiff > 0.75 = '╽'
+  | mDiff > 0.25 && hDiff < 0.75 = '╻'
+  | hDiff > 0.75 = '│'
+  | hDiff > 0.25 = '╷'
+  | otherwise = 'a'
+  where 
+    mDiff = (max op cl) - y
+    hDiff = hi - y
+
+getLowerSymbol :: Double -> Candle -> Char
+getLowerSymbol x (Candle op cl _ lo)
+  | mDiff < 0.25 = '┃'
+  | mDiff <  0.75 && lDiff < 0.25 = '╿'
+  | mDiff < 0.75 && lDiff > 0.25 = '╹'
+  | lDiff < 0.25 = '│' 
+  | lDiff < 0.75 = '╵'
+  | otherwise = 'a'
+  where 
+    mDiff = (min op cl) - x
+    lDiff = lo - x
+
+candlePixel :: Int -> Candle -> Pixel
+candlePixel y c@(Candle op cl hi lo)
+  | ceiling hi >= y && y >= floor yM = Colored color (getUpperSymbol y' c)
+  | ceiling ym >= y && y >= floor lo = Colored color (getLowerSymbol y' c)
+  | yM >= y' && y >= ceiling ym = Colored color '┃'
+  | otherwise = Empty
+  where
+    bullish = op < cl
+    ym = min op cl
+    yM = max op cl
+    y' = fromIntegral y :: Double
+    color = if bullish then VT.green else VT.red
+
+takeLastN :: Int -> [a] -> [a]
+takeLastN n = reverse . take n . reverse

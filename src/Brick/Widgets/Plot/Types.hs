@@ -14,6 +14,13 @@ data Pixel
     | Empty
     deriving (Eq)
 
+data Candle = Candle 
+    { candleOpen :: Double
+    , candleClose :: Double
+    , candleHigh :: Double
+    , candleLow :: Double
+    } deriving (Show, Eq)
+
 data Dimensions = Dims
   { xMin :: Double
   , xMax :: Double

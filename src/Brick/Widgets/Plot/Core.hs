@@ -5,6 +5,7 @@ module Brick.Widgets.Plot.Core (
     scatter',
     area,
     area',
+    candle,
 )
 
 where
@@ -50,7 +51,7 @@ area opt xs = state $ \c -> (dims, update c)
               forM_ [y..((height c)-1)] $ \i -> MV.modify v  (pix <>) (x + i * (width c))
       frz <- V.unsafeFreeze v
       return $ updatePixels c frz
-      
+
 area' :: [Point] -> CanvasState Dimensions
 area' = area []
 
@@ -67,3 +68,35 @@ scatter opt xs = state $ \c -> (dims, update c)
 
 scatter' :: [Point] -> CanvasState Dimensions
 scatter' = scatter []
+
+combineCandles :: [Candle] -> Candle
+combineCandles [] = error "combineCandles: empty list"
+combineCandles cs = Candle
+  { candleOpen = candleOpen (head cs)
+  , candleClose = candleClose (last cs)
+  , candleHigh = maximum (map candleHigh cs)
+  , candleLow = minimum (map candleLow cs)
+  }
+
+constructCandle :: [Point] -> Candle
+constructCandle [] = error "constructCandle: empty list"
+constructCandle ps = Candle
+  { candleOpen = snd (head ps)
+  , candleClose = snd (last ps)
+  , candleHigh = maximum $ map snd ps
+  , candleLow = minimum $ map snd ps
+  }
+
+candle :: [Candle] -> CanvasState ()
+candle cs = state $ \canvas -> ((), update canvas)
+  where
+    scaledCds c = scaleCandles c $ takeLastN (width c) cs
+    update c = runST $ do
+      v <- V.thaw (pixels c)
+      forM_ (zip [0..] $ scaledCds c) $ \(x, cd) ->
+        forM_ [0 .. height c - 1] $ \y ->
+          let pixelIndex = x + y * width c
+              pixelValue = candlePixel (height c - y) cd
+          in MV.modify v (pixelValue <>) pixelIndex
+      frz <- V.unsafeFreeze v
+      return $ updatePixels c frz
