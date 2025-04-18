@@ -45,7 +45,11 @@ data Canvas = Canvas
 } deriving (Eq)
 
 instance Show Canvas where
-    show (Canvas pix w h) = unlines [concatMap show (V.toList (V.slice (i * w) w pix)) | i <- [0 .. h - 1]]
+    show c = unlines [concatMap show (V.toList (V.slice (i * w) w pix)) | i <- [0 .. h - 1]]
+        where 
+            pix = pixels c
+            w = width c
+            h = height c
 
 type CanvasState a = State Canvas a 
 

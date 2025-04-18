@@ -3,7 +3,6 @@ module Brick.Widgets.Plot.Core (
     paint,
     scatter,
     scatter',
-
     area,
     area',
 )
@@ -30,7 +29,7 @@ import Graphics.Vty ((<->))
 plot :: Int -> Int -> Canvas
 plot w h 
   | h < 1 || w < 1 = error "plot: Invalid canvas shape"
-  | otherwise =Canvas (V.replicate (w*h) Empty) w h
+  | otherwise = Canvas (V.replicate (w*h) Empty) w h
 
 paint :: Canvas -> Widget n
 paint (Canvas px w _) = let 
@@ -39,24 +38,23 @@ paint (Canvas px w _) = let
       | otherwise = VT.horizCat (V.toList $ V.map img $ V.take w xs) <-> paintRow (V.drop w xs)
     in Widget Fixed Fixed $ return $ Result (paintRow px) [] [] [] Brick.BorderMap.empty
 
-area :: [Options] -> [Point] -> CanvasState Dimensions
+area :: [Option] -> [Point] -> CanvasState Dimensions
 area opt xs = state $ \c -> (dims, update c)
   where 
     pix = getMarker opt
     dims = getDimensions opt xs
     uP c = uniqueFstMaxSnd (mapMaybe (matrixIndex c dims) xs )
-    update c@(Canvas px w h) = runST $ do
-      v <- V.thaw px
+    update c = runST $ do
+      v <- V.thaw $ pixels c
       forM_ (uP c) $ \(x, y) -> 
-              forM_ [y..(h-1)] $ \i -> MV.modify v  (pix <>) (x + i * w)
+              forM_ [y..((height c)-1)] $ \i -> MV.modify v  (pix <>) (x + i * (width c))
       frz <- V.unsafeFreeze v
-      return (Canvas frz w h)
-      
+      return $ updatePixels c frz
       
 area' :: [Point] -> CanvasState Dimensions
 area' = area []
 
-scatter :: [Options] -> [Point] -> CanvasState Dimensions
+scatter :: [Option] -> [Point] -> CanvasState Dimensions
 scatter opt xs = state $ \c -> (dims, update c)
   where
     pix = getMarker opt
@@ -65,7 +63,7 @@ scatter opt xs = state $ \c -> (dims, update c)
       v <- V.thaw (pixels c)
       forM_ (mapMaybe (toIndex c dims) xs) $ \x -> MV.modify v (pix <>) x  
       frz <- V.unsafeFreeze v
-      return (Canvas frz (width c) (height c))
+      return $ updatePixels c frz
 
 scatter' :: [Point] -> CanvasState Dimensions
 scatter' = scatter []

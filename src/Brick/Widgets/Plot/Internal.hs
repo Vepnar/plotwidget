@@ -8,11 +8,13 @@ module Brick.Widgets.Plot.Internal (
   groupFst,
   uniqueFstMaxSnd,
   getDimensions,
+  computeDimensions,
   getMarker,
  )
 where
 
 import qualified Graphics.Vty as VT
+import qualified Data.Vector as V
 
 import Brick.Widgets.Plot.Types
 
@@ -91,7 +93,7 @@ img (Natural cr) = VT.char VT.defAttr cr
 -- 
 -- - @error@: If the input list is empty.
 computeDimensions :: [Point] -> Dimensions
-computeDimensions [] = error "computeDimensions: empty list"
+computeDimensions [] = Dims 0 1 0 1
 computeDimensions [(x,y)] = Dims (x-1) (x+1) (y-1) (y+1) 
 computeDimensions xs = Dims xm xM ym yM
   where 
@@ -99,52 +101,27 @@ computeDimensions xs = Dims xm xM ym yM
     x = map fst xs
     y = map snd xs
 
--- | Computes the dimensions for a plot based on a list of options and points.
--- 
--- This function determines the dimensions of a plot by examining the provided
--- list of 'Options'. If a 'Dimensions' option is found, it uses the specified
--- dimensions. Otherwise, it computes the dimensions based on the given list
--- of points.
---
--- ==== Parameters
--- * @options@: A list of 'Options' that may include a 'Dimensions' specification.
--- * @points@: A list of 'Point' values representing the data to be plotted.
---
--- ==== Returns
--- A 'Dimensions' value representing the size of the plot.
-getDimensions :: [Options] -> [Point] -> Dimensions
+
+getDimensions :: [Option] -> [Point] -> Dimensions
 getDimensions [] xs = computeDimensions xs
 getDimensions (Dimensions d:_) _ = d
 getDimensions (_:os) xs = getDimensions os xs
 
--- | Extracts the marker pixel from a list of 'Options'.
--- 
--- This function traverses the list of 'Options' to find the first
--- 'Marker' constructor and returns its associated 'Pixel'. If no
--- 'Marker' is found, it defaults to 'whiteStar'.
---
--- ==== __Examples__
---
--- >>> getMarker [Marker redCircle, OtherOption]
--- redCircle
---
--- >>> getMarker []
--- whiteStar
---
--- @param [Options] A list of 'Options' to search for a 'Marker'.
--- @return 'Pixel' The marker pixel, or 'whiteStar' if no marker is found.
-getMarker :: [Options] -> Pixel
+getMarker :: [Option] -> Pixel
 getMarker [] = whiteStar
 getMarker (Marker m:_) = m
 getMarker (_:xs) = getMarker xs
 
+-- Study optics
+updatePixels :: Canvas -> V.Vector Pixel -> Canvas
+updatePixels (Canvas v w h) v' = Canvas v' w h
 
 -- Maybe remove
 unsafeMatrixIndex :: Canvas -> Dimensions -> Point -> (Int,Int)
-unsafeMatrixIndex (Canvas _ w h) (Dims xm xM ym yM) (x,y) = (xP,yP)
+unsafeMatrixIndex c (Dims xm xM ym yM) (x,y) = (xP,yP)
   where 
-    xP = round $ scale xm xM (w-1) x :: Int
-    yP = round $ scale yM ym (h-1) y :: Int
+    xP = round $ scale xm xM (width c-1) x :: Int
+    yP = round $ scale yM ym (height c-1) y :: Int
 
 matrixIndex :: Canvas -> Dimensions -> Point -> Maybe (Int, Int)
 matrixIndex c dims p
@@ -154,8 +131,8 @@ matrixIndex c dims p
 
 -- Maybe generalize
 toIndex :: Canvas -> Dimensions -> Point -> Maybe Int
-toIndex c@(Canvas _ w _) d p = 
-    fmap (\(xP, yP) -> xP + w * yP) (matrixIndex c d p)
+toIndex c d p = 
+    fmap (\(xP, yP) -> xP + (width c) * yP) (matrixIndex c d p)
 
 validDimensions :: Dimensions -> Bool
 validDimensions (Dims xm xM ym yM) = xm < xM && ym < yM
