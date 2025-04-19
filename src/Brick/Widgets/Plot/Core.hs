@@ -6,6 +6,7 @@ module Brick.Widgets.Plot.Core (
     area,
     area',
     candle,
+    drawPixels,
 )
 
 where
@@ -38,6 +39,16 @@ paint (Canvas px w _) = let
       | null xs = VT.emptyImage
       | otherwise = VT.horizCat (V.toList $ V.map img $ V.take w xs) <-> paintRow (V.drop w xs)
     in Widget Fixed Fixed $ return $ Result (paintRow px) [] [] [] Brick.BorderMap.empty
+
+drawPixels :: [(MIndex, Pixel)] -> CanvasState ()
+drawPixels [] = return ()
+drawPixels xs = state $ \c -> ((), update c)
+  where 
+    update c = runST $ do
+      v <- V.thaw (pixels c)
+      forM_ xs $ \((x,y),p) -> MV.modify v (p<>) (x + (width c) * y)
+      frz <- V.unsafeFreeze v
+      return $ updatePixels c frz
 
 area :: [Option] -> [Point] -> CanvasState Dimensions
 area opt xs = state $ \c -> (dims, update c)

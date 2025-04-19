@@ -120,20 +120,16 @@ getMarker (_:xs) = getMarker xs
 
 -- Study optics
 updatePixels :: Canvas -> V.Vector Pixel -> Canvas
-updatePixels (Canvas v w h) v' = Canvas v' w h
-
--- Maybe remove
-unsafeMatrixIndex :: Canvas -> Dimensions -> Point -> (Int,Int)
-unsafeMatrixIndex c (Dims xm xM ym yM) (x,y) = (xP,yP)
-  where 
-    xP = round $ scale xm xM (width c-1) x :: Int
-    yP = round $ scale yM ym (height c-1) y :: Int
+updatePixels (Canvas _ w h) v' = Canvas v' w h
 
 matrixIndex :: Canvas -> Dimensions -> Point -> Maybe (Int, Int)
-matrixIndex c dims p
-  | not $ validDimensions dims = Nothing
-  | not $ inDimensions dims p = Nothing
-  | otherwise = Just (unsafeMatrixIndex c dims p)
+matrixIndex c d@(Dims xm xM ym yM) (x,y)
+  | not $ validDimensions d = Nothing
+  | not $ inDimensions d (x,y) = Nothing
+  | otherwise = Just (xP,yP)
+  where 
+    xP = round $ scale xm xM (width c-1) x
+    yP = round $ scale yM ym (height c-1) y
 
 -- Maybe generalize
 toIndex :: Canvas -> Dimensions -> Point -> Maybe Int
@@ -159,18 +155,18 @@ scaleCandles canvas candles = map scaleCandle candles
   where
     scaleCandle (Candle op cl hi lo) =
       Candle (scaler op) (scaler cl) (scaler hi) (scaler lo)
-    scaler value = scale minY maxY (height canvas) value
-    minY = minimum $ map candleLow candles
-    maxY = maximum $ map candleHigh candles
+    scaler value = scale ym yM (height canvas) value
+    ym = (minimum $ map candleLow candles)
+    yM = (maximum $ map candleHigh candles)
     
 getUpperSymbol :: Double -> Candle -> Char
-getUpperSymbol y (Candle op cl hi _)
+getUpperSymbol y (Candle op cl hi _) 
   | mDiff > 0.75 = '┃'
-  | mDiff > 0.25 && hDiff > 0.75 = '╽'
-  | mDiff > 0.25 && hDiff < 0.75 = '╻'
+  | mDiff > 0.25, hDiff > 0.75 = '╽'
+  | mDiff > 0.25, hDiff <= 0.75 = '╻'
   | hDiff > 0.75 = '│'
   | hDiff > 0.25 = '╷'
-  | otherwise = 'a'
+  | otherwise = ' '
   where 
     mDiff = (max op cl) - y
     hDiff = hi - y
@@ -178,27 +174,27 @@ getUpperSymbol y (Candle op cl hi _)
 getLowerSymbol :: Double -> Candle -> Char
 getLowerSymbol x (Candle op cl _ lo)
   | mDiff < 0.25 = '┃'
-  | mDiff <  0.75 && lDiff < 0.25 = '╿'
+  | mDiff < 0.75 && lDiff < 0.25 = '╿'
   | mDiff < 0.75 && lDiff > 0.25 = '╹'
   | lDiff < 0.25 = '│' 
   | lDiff < 0.75 = '╵'
-  | otherwise = 'a'
+  | otherwise = ' '
   where 
     mDiff = (min op cl) - x
     lDiff = lo - x
 
 candlePixel :: Int -> Candle -> Pixel
 candlePixel y c@(Candle op cl hi lo)
-  | ceiling hi >= y && y >= floor yM = Colored color (getUpperSymbol y' c)
-  | ceiling ym >= y && y >= floor lo = Colored color (getLowerSymbol y' c)
-  | yM >= y' && y >= ceiling ym = Colored color '┃'
+  | ceiling hi >= y, y >= floor yM = pix $ getUpperSymbol y' c
+  | ceiling ym >= y, y >= floor lo = pix $ getLowerSymbol y' c
+  | yM >= y' && y >= ceiling ym = pix $ '┃'
   | otherwise = Empty
   where
     bullish = op < cl
     ym = min op cl
     yM = max op cl
     y' = fromIntegral y :: Double
-    color = if bullish then VT.green else VT.red
+    pix = Colored $ if bullish then VT.green else VT.red 
 
 takeLastN :: Int -> [a] -> [a]
 takeLastN n = reverse . take n . reverse

@@ -7,6 +7,7 @@ import qualified Data.Vector as V
 import qualified Data.Semigroup as Sem
 
 type Point = (Double,Double)
+type MIndex = (Int,Int)
 
 data Pixel 
     = Colored { color :: VT.Color, char :: Char } 
