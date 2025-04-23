@@ -42,13 +42,24 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
+- -Wmissed-specialisations
+- -Wall-missed-specialisations
 
 library:
   source-dirs: src
 
 executables:
-  plotwidget-exe:
-    main:                Main.hs
+  animatedOverlay:
+    main:                animatedOverlay.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - plotwidget
+  mandlebrot:
+    main:                mandlebrot.hs
     source-dirs:         app
     ghc-options:
     - -threaded

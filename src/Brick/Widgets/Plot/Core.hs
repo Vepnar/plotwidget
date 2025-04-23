@@ -1,12 +1,15 @@
 module Brick.Widgets.Plot.Core (
     plot,
-    paint,
     scatter,
     scatter',
     area,
     area',
     candle,
     drawPixels,
+    toWidget,
+    toStr,
+    constructCandle,
+    combineCandles,
 )
 
 where
@@ -33,12 +36,19 @@ plot w h
   | h < 1 || w < 1 = error "plot: Invalid canvas shape"
   | otherwise = Canvas (V.replicate (w*h) Empty) w h
 
-paint :: Canvas -> Widget n
-paint (Canvas px w _) = let 
+toStr :: Int -> Int -> CanvasState a -> String
+toStr w h cs = show $ execState cs $ plot w h
+
+printCanvas :: Int -> Int -> CanvasState a -> IO ()
+printCanvas w h = putStr . toStr w h
+
+toWidget :: Int -> Int ->  CanvasState a -> Widget n
+toWidget w h cs = let
+  canvas = execState cs $ plot w h
     paintRow xs
       | null xs = VT.emptyImage
       | otherwise = VT.horizCat (V.toList $ V.map img $ V.take w xs) <-> paintRow (V.drop w xs)
-    in Widget Fixed Fixed $ return $ Result (paintRow px) [] [] [] Brick.BorderMap.empty
+  in Widget Fixed Fixed $ return $ Result (paintRow $ pixels canvas) [] [] [] Brick.BorderMap.empty
 
 drawPixels :: [(MIndex, Pixel)] -> CanvasState ()
 drawPixels [] = return ()

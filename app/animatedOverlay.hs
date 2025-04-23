@@ -22,7 +22,6 @@ import Brick.Types
 
 import Brick.Widgets.Plot
 import Control.Monad (void, forever)
-import Control.Monad.State
 
 import qualified Graphics.Vty as V
 
@@ -35,7 +34,6 @@ data St =
 
 makeLenses ''St
 
-
 wave :: Int -> CanvasState ()
 wave n = area [Marker redCirc] sinWave >> area' cosWave >> return ()
     where 
@@ -46,10 +44,10 @@ wave n = area [Marker redCirc] sinWave >> area' cosWave >> return ()
         sinWave = zip x $ map sin x
         cosWave = zip x $ map cos x
 
-plotUI :: St -> Widget n
+plotUI :: St -> Widget ()
 plotUI st = Widget Greedy Greedy $ 
     getContext >>= \ctx -> 
-    render $ paint $ execState (wave (st^.stCounter)) $ plot (ctx^.availWidthL) (ctx^.availHeightL)
+    render $ toWidget (ctx^.availWidthL) (ctx^.availHeightL) (wave (st^.stCounter))
 
 drawUI :: St -> [Widget ()]
 drawUI st = [plotUI st]

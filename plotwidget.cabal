@@ -35,7 +35,7 @@ library
       Paths_plotwidget
   hs-source-dirs:
       src
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wmissed-specialisations -Wall-missed-specialisations
   build-depends:
       base >=4.7 && <5
     , brick >=2.8
@@ -51,15 +51,40 @@ library
     , vty-crossplatform
   default-language: Haskell2010
 
-executable plotwidget-exe
-  main-is: Main.hs
+executable animatedOverlay
+  main-is: animatedOverlay.hs
   other-modules:
       Paths_plotwidget
   autogen-modules:
       Paths_plotwidget
   hs-source-dirs:
       app
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wmissed-specialisations -Wall-missed-specialisations -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , brick >=2.8
+    , containers
+    , microlens >=0.3.0.0
+    , microlens-mtl
+    , microlens-platform
+    , microlens-th
+    , mtl
+    , plotwidget
+    , text
+    , vector >=0.13.2.0
+    , vty >=6.0
+    , vty-crossplatform
+  default-language: Haskell2010
+
+executable mandlebrot
+  main-is: mandlebrot.hs
+  other-modules:
+      Paths_plotwidget
+  autogen-modules:
+      Paths_plotwidget
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wmissed-specialisations -Wall-missed-specialisations -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , brick >=2.8
@@ -86,7 +111,7 @@ test-suite plotwidget-test
       Paths_plotwidget
   hs-source-dirs:
       test
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wmissed-specialisations -Wall-missed-specialisations -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       HUnit
     , base >=4.7 && <5
