@@ -28,6 +28,7 @@ library
       Brick.Widgets.Plot
       Brick.Widgets.Plot.Core
       Brick.Widgets.Plot.Internal
+      Brick.Widgets.Plot.Simple
       Brick.Widgets.Plot.Types
   other-modules:
       Paths_plotwidget
@@ -95,6 +96,34 @@ executable mandlebrot
     , microlens-th
     , mtl
     , plotwidget
+    , text
+    , vector >=0.13.2.0
+    , vty >=6.0
+    , vty-crossplatform
+  default-language: Haskell2010
+
+executable wiener
+  main-is: wiener.hs
+  other-modules:
+      Paths_plotwidget
+  autogen-modules:
+      Paths_plotwidget
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wmissed-specialisations -Wall-missed-specialisations -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , brick >=2.8
+    , containers
+    , microlens >=0.3.0.0
+    , microlens-mtl
+    , microlens-platform
+    , microlens-th
+    , mtl
+    , mwc-random
+    , plotwidget
+    , random
+    , random-fu
     , text
     , vector >=0.13.2.0
     , vty >=6.0

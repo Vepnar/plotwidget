@@ -8,8 +8,7 @@ module Brick.Widgets.Plot.Core (
     drawPixels,
     toWidget,
     toStr,
-    constructCandle,
-    combineCandles,
+    toConsole,
 )
 
 where
@@ -39,15 +38,15 @@ plot w h
 toStr :: Int -> Int -> CanvasState a -> String
 toStr w h cs = show $ execState cs $ plot w h
 
-printCanvas :: Int -> Int -> CanvasState a -> IO ()
-printCanvas w h = putStr . toStr w h
+toConsole :: Int -> Int -> CanvasState a -> IO ()
+toConsole w h = putStr . toStr w h
 
 toWidget :: Int -> Int ->  CanvasState a -> Widget n
 toWidget w h cs = let
   canvas = execState cs $ plot w h
-    paintRow xs
-      | null xs = VT.emptyImage
-      | otherwise = VT.horizCat (V.toList $ V.map img $ V.take w xs) <-> paintRow (V.drop w xs)
+  paintRow xs
+    | null xs = VT.emptyImage
+    | otherwise = VT.horizCat (V.toList $ V.map img $ V.take w xs) <-> paintRow (V.drop w xs)
   in Widget Fixed Fixed $ return $ Result (paintRow $ pixels canvas) [] [] [] Brick.BorderMap.empty
 
 drawPixels :: [(MIndex, Pixel)] -> CanvasState ()
@@ -61,63 +60,38 @@ drawPixels xs = state $ \c -> ((), update c)
       return $ updatePixels c frz
 
 area :: [Option] -> [Point] -> CanvasState Dimensions
-area opt xs = state $ \c -> (dims, update c)
-  where 
-    pix = getMarker opt
-    dims = getDimensions opt xs
-    uP c = uniqueFstMaxSnd (mapMaybe (matrixIndex c dims) xs )
-    update c = runST $ do
-      v <- V.thaw $ pixels c
-      forM_ (uP c) $ \(x, y) -> 
-              forM_ [y..((height c)-1)] $ \i -> MV.modify v  (pix <>) (x + i * (width c))
-      frz <- V.unsafeFreeze v
-      return $ updatePixels c frz
+area opt xs = do
+  c <- get
+  let pix = getMarker opt
+      dims = getDimensions opt xs
+      uP = uniqueFstMaxSnd $ mapMaybe (matrixIndex c dims) xs
+      pos = uP >>= \(x,y) -> [(x,i) | i <- [y..(height c) - 1]]
+  drawPixels $ zip pos $ repeat pix
+  return dims
 
 area' :: [Point] -> CanvasState Dimensions
 area' = area []
 
 scatter :: [Option] -> [Point] -> CanvasState Dimensions
-scatter opt xs = state $ \c -> (dims, update c)
-  where
-    pix = getMarker opt
-    dims = getDimensions opt xs
-    update c = runST $ do
-      v <- V.thaw (pixels c)
-      forM_ (mapMaybe (toIndex c dims) xs) $ \x -> MV.modify v (pix <>) x  
-      frz <- V.unsafeFreeze v
-      return $ updatePixels c frz
-
+scatter opt xs = do
+  c <- get
+  let pix = getMarker opt
+      dims = getDimensions opt xs
+      ps = zip (mapMaybe (matrixIndex c dims) xs) (repeat pix)
+  drawPixels ps
+  return dims
+    
 scatter' :: [Point] -> CanvasState Dimensions
 scatter' = scatter []
 
-combineCandles :: [Candle] -> Candle
-combineCandles [] = error "combineCandles: empty list"
-combineCandles cs = Candle
-  { candleOpen = candleOpen (head cs)
-  , candleClose = candleClose (last cs)
-  , candleHigh = maximum (map candleHigh cs)
-  , candleLow = minimum (map candleLow cs)
-  }
-
-constructCandle :: [Point] -> Candle
-constructCandle [] = error "constructCandle: empty list"
-constructCandle ps = Candle
-  { candleOpen = snd (head ps)
-  , candleClose = snd (last ps)
-  , candleHigh = maximum $ map snd ps
-  , candleLow = minimum $ map snd ps
-  }
-
+-- This isn't optimized, doesnt render well, and doesn't accept any options
+-- Therefore is unfinished
 candle :: [Candle] -> CanvasState ()
-candle cs = state $ \canvas -> ((), update canvas)
-  where
-    scaledCds c = scaleCandles c $ takeLastN (width c) cs
-    update c = runST $ do
-      v <- V.thaw (pixels c)
-      forM_ (zip [0..] $ scaledCds c) $ \(x, cd) ->
-        forM_ [0 .. height c - 1] $ \y ->
-          let pixelIndex = x + y * width c
-              pixelValue = candlePixel (height c - y) cd
-          in MV.modify v (pixelValue <>) pixelIndex
-      frz <- V.unsafeFreeze v
-      return $ updatePixels c frz
+candle cs = do 
+  c <- get 
+  let cs' = zip [0..] $ scaleCandles c $ takeLastN (width c) cs
+      h = height c
+      column = [0..h-1]
+  drawPixels $ cs' >>= \(x, cd) -> 
+    [((x,y), (candlePixel (h - y) cd)) | y <- column]
+  return ()

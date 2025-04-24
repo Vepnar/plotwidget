@@ -7,7 +7,7 @@ The following features are currently implemented in the library:
 * Scatter plots
 * Area plots: Display the area below a given point
 * Layers: overlay multiple plots on top of each other
-* Candlestick charts
+* Simple plotting functionality
 
 ## Todo
 The following features are planned for implementation, in no particular order:
@@ -17,3 +17,4 @@ The following features are planned for implementation, in no particular order:
 * Axes labels/ticks
 * Better option parsing
 * Braille based pixels (increase resolution)
+* Create functioning candle stick charts

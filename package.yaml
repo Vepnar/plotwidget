@@ -67,6 +67,18 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - plotwidget
+  wiener:
+    main:                wiener.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - plotwidget
+    - random-fu
+    - random
+    - mwc-random
 
 tests:
   plotwidget-test:
