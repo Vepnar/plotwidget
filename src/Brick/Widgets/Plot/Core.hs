@@ -89,9 +89,9 @@ scatter' = scatter []
 candle :: [Candle] -> CanvasState ()
 candle cs = do 
   c <- get 
-  let cs' = zip [0..] $ scaleCandles c $ takeLastN (width c) cs
-      h = height c
+  let h = height c 
+      cs' = zip [0..] $ scaleCandles h $ takeLastN (width c) cs
       column = [0..h-1]
   drawPixels $ cs' >>= \(x, cd) -> 
-    [((x,y), (candlePixel (h - y) cd)) | y <- column]
+    [((x,y), (candlePixel (h-y) cd)) | y <- column]
   return ()

@@ -46,7 +46,6 @@ computeDimensions xs = Dims xm xM ym yM
     x = map fst xs
     y = map snd xs
 
-
 getDimensions :: [Option] -> [Point] -> Dimensions
 getDimensions [] xs = computeDimensions xs
 getDimensions (Dimensions d:_) _ = d
@@ -78,18 +77,18 @@ inDimensions dims@(Dims xm xM ym yM) (x, y)
   | not (validDimensions dims) = error "inDimensions: Invalid dimensions"
   | otherwise =  x >= xm && x <= xM && y >= ym && y <= yM
 
-groupFst :: Eq a => [(a, b)] -> [[(a, b)]]
-groupFst = groupBy (\(x,_) (y,_) -> x == y)
+groupFst :: Ord a => [(a, b)] -> [[(a, b)]]
+groupFst = groupBy (\(x,_) (y,_) -> x == y) . sortBy (comparing fst)
 
-uniqueFstMaxSnd :: (Ord a) => [(a,a)] -> [(a,a)]
-uniqueFstMaxSnd = map (maximumBy (comparing snd)) . groupFst . sortBy (comparing fst)
+uniqueFstMaxSnd :: (Ord a, Ord b) => [(a,b)] -> [(a,b)]
+uniqueFstMaxSnd = map (maximumBy (comparing snd)) . groupFst
 
-scaleCandles :: Canvas -> [Candle] -> [Candle]
-scaleCandles canvas candles = map scaleCandle candles
+scaleCandles :: Int -> [Candle] -> [Candle]
+scaleCandles h candles = map scaleCandle candles
   where
     scaleCandle (Candle op cl hi lo) =
       Candle (scaler op) (scaler cl) (scaler hi) (scaler lo)
-    scaler value = scale ym yM (height canvas) value
+    scaler = scale ym yM h
     ym = (minimum $ map candleLow candles)
     yM = (maximum $ map candleHigh candles)
     
@@ -124,11 +123,10 @@ candlePixel y c@(Candle op cl hi lo)
   | yM >= y' && y >= ceiling ym = pix $ '┃'
   | otherwise = Empty
   where
-    bullish = op < cl
     ym = min op cl
     yM = max op cl
     y' = fromIntegral y :: Double
-    pix = Colored $ if bullish then VT.green else VT.red 
+    pix = Colored $ if cl < op then VT.green else VT.red 
 
 takeLastN :: Int -> [a] -> [a]
-takeLastN n = reverse . take n . reverse
+takeLastN n = take n . reverse

@@ -22,6 +22,13 @@ data Candle = Candle
     , candleLow :: Double
     } deriving (Show, Eq)
 
+instance Sem.Semigroup Candle where
+    Candle o1 _ h1 l1 <> Candle _ c2 h2 l2 = Candle o1 c2 (max h1 h2) (min l1 l2)
+
+instance Monoid Candle where
+    mempty = Candle 0 0 0 0
+    mappend = (Sem.<>)
+
 data Dimensions = Dims
   { xMin :: Double
   , xMax :: Double
@@ -29,7 +36,7 @@ data Dimensions = Dims
   , yMax :: Double
   } deriving (Show, Eq)
 
-data Options = Marker Pixel | Dimensions Dimensions
+data Option = Marker Pixel | Dimensions Dimensions
     deriving (Show, Eq)
 
 instance Sem.Semigroup Pixel where
