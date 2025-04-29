@@ -18,11 +18,12 @@ mandelbrot maxIter c = iter 0 (0 :+ 0)
       | otherwise = iter (n+1) (z^2 + c)
 
 mandelbrotSet :: Dimensions -> Int -> Int -> [(Double, Double)]
-mandelbrotSet (Dims xm xM ym yM) w h = [(cx,cy) | x <- [0..w-1], y <- [0..h-1],
-    let cx = fromIntegral x * (xM-xm) / fromIntegral w + xm,
-    let cy = fromIntegral y * (yM-ym) / fromIntegral h + ym,
-    mandelbrot 1000 (cx :+ cy)
+mandelbrotSet (Dims xm xM ym yM) w h = [(cx,cy) | x <- [0,0.5..w'-1], y <- [0,0.125..h'-1],
+    let cx = x * (xM-xm) / w' + xm,
+    let cy = y * (yM-ym) / h' + ym,
+    mandelbrot 300 (cx :+ cy)
     ]
+    where (w', h') = (fromIntegral w, fromIntegral h)
 
 plotMandelbrotSet :: Widget ()
 plotMandelbrotSet = Widget Greedy Greedy $ do
