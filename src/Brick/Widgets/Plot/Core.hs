@@ -2,9 +2,11 @@ module Brick.Widgets.Plot.Core (
     plot,
     scatter,
     scatter',
+    scatterBraille,
+    scatterBraille',
     area,
     area',
-    candle,
+    candle',
     drawPixels,
     toWidget,
     toStr,
@@ -65,11 +67,13 @@ area :: [Option] -> [Point] -> CanvasState Dimensions
 area opt xs = do
   c <- get
   let marker = fromMaybe '*' $ getMarker opt
-      col = fromMaybe VT.white $ getPrimary opt
+      prim = fromMaybe VT.white $ getPrimary opt
+      sec = fromMaybe prim $ getSecondary opt
       dims = fromMaybe (computeDimensions xs) $ getDimensions opt 
       uP = uniqueFstMaxSnd $ mapMaybe (matrixIndex c dims) xs
-      pos = uP >>= \(x,y) -> [(x,i) | i <- [y..(height c) - 1]]
-  drawPixels $ zip pos $ repeat $ Colored col marker
+      fill = uP >>= \(x,y) -> [(x,i) | i <- [(y+1)..(height c) - 1]]
+  drawPixels $ zip fill $ repeat $ Colored sec marker
+  drawPixels $ zip uP $ repeat $ Colored prim marker
   return dims
 
 area' :: [Point] -> CanvasState Dimensions
@@ -78,22 +82,33 @@ area' = area []
 scatter :: [Option] -> [Point] -> CanvasState Dimensions
 scatter opt xs = do
   cv <- get
-  let marker = getMarker opt
+  let marker = getMarker opt <|> Just '*'
       col = getPrimary opt <|> Just VT.white
       dims = fromMaybe (computeDimensions xs) $ getDimensions opt 
       scaledXs = map (index cv dims) xs
-      charDrawer = liftA2 toCharPixel col marker
-      brailleDrawer = toBraillePixel <$> col
-      drawer = brailleDrawer <|> charDrawer
+      drawer = liftA2 toCharPixel col marker
   drawPixels $ mapMaybe (ap drawer) scaledXs
   return dims
-    
+
 scatter' :: [Point] -> CanvasState Dimensions
 scatter' = scatter []
 
+scatterBraille :: [Option] -> [Point] -> CanvasState Dimensions
+scatterBraille opt xs = do
+  cv <- get
+  let col = getPrimary opt <|> Just VT.white
+      dims = fromMaybe (computeDimensions xs) $ getDimensions opt 
+      scaledXs = map (index cv dims) xs
+      drawer = toBraillePixel <$> col 
+  drawPixels $ mapMaybe (ap drawer) scaledXs
+  return dims
+
+scatterBraille' :: [Point] -> CanvasState Dimensions
+scatterBraille' = scatterBraille []
+
 -- Implement option handling
-candle :: [Candle] -> CanvasState Dimensions
-candle cs = do 
+candle' :: [Candle] -> CanvasState Dimensions
+candle' cs = do 
   c <- get 
   let (w, h) = (width c, height c) 
       cs' = scaleCandles h $ take w $ reverse cs

@@ -4,13 +4,14 @@ module Brick.Widgets.Plot.Internal (
   img,
   index,
   validDimensions,
+  getDimensions,
   inDimensions,
   groupFst,
   uniqueFstMaxSnd,
-  getDimensions,
   computeDimensions,
   getMarker,
   getPrimary,
+  getSecondary,
   candlePixel,
   updatePixels,
   getUpperSymbol,
@@ -41,7 +42,7 @@ img :: Pixel -> VT.Image
 img Empty = VT.char VT.defAttr ' '
 img (Colored co cr) = VT.char attr cr
   where attr = VT.defAttr {VT.attrForeColor = VT.SetTo co}
-img b@(Braille co _) = VT.char attr $ show b !! 0
+img b = VT.char attr $ show b !! 0
   where 
     attr = VT.defAttr {VT.attrForeColor = VT.SetTo $ color b}
     
@@ -70,6 +71,11 @@ getPrimary [] = Nothing
 getPrimary (Primary c:_) = Just c
 getPrimary (_:xs) = getPrimary xs
 
+getSecondary :: [Option] -> Maybe VT.Color
+getSecondary [] = Nothing
+getSecondary (Secondary c:_) = Just c
+getSecondary (_:xs) = getSecondary xs
+
 -- Study optics
 updatePixels :: Canvas -> V.Vector Pixel -> Canvas
 updatePixels (Canvas _ w h) v' = Canvas v' w h
@@ -88,18 +94,19 @@ matrixIndex c d = fmap (\(x,y) -> (round x, round y)) . index c d
 
 toBraille :: Point -> Word8
 toBraille (x,y) 
-  | cx > 0.5 && cy > 0.75 = 0x01
-  | cx <= 0.5 && cy > 0.75 = 0x08
-  | cx > 0.5 && cy > 0.50 = 0x02
-  | cx <= 0.5 && cy > 0.50 = 0x10
-  | cx > 0.5 && cy > 0.25 = 0x04
-  | cx <= 0.5 && cy > 0.25 = 0x20
-  | cx > 0.5 = 0x40
-  | cx <= 0.5 = 0x80
+  | cx <= 0.5 && cy > 0.75 = 0x01
+  | cx >= 0.5 && cy > 0.75 = 0x08
+  | cx < 0.5 && cy > 0.50 = 0x02
+  | cx >= 0.5 && cy > 0.50 = 0x10
+  | cx < 0.5 && cy > 0.25 = 0x04
+  | cx >= 0.5 && cy > 0.25 = 0x20
+  | cx < 0.5 = 0x40
+  | cx >= 0.5 = 0x80
+  | otherwise = 0x00
   where 
     cx = abs (x - fromIntegral (floor x))
     cy = abs (y - fromIntegral (floor y))
-
+  
 toBraillePixel :: VT.Color -> (Double,Double) -> (MIndex,Pixel)
 toBraillePixel c (x,y) = if b == 0 then (p, Empty) else (p, Braille c b)
   where 
@@ -107,7 +114,7 @@ toBraillePixel c (x,y) = if b == 0 then (p, Empty) else (p, Braille c b)
     b = toBraille (x,y)
 
 toCharPixel :: VT.Color -> Char -> (Double,Double) -> (MIndex, Pixel)
-toCharPixel color ch (x,y) = (p, Colored color ch)
+toCharPixel col ch (x,y) = (p, Colored col ch)
   where 
     p = (round x,round y) :: (Int,Int)
 

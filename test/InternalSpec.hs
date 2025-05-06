@@ -63,8 +63,6 @@ spec = do
             groupFst [(1, 'a'), (2, 'b'), (2, 'c'), (1, 'd'), (3, 'e')] `shouldBe` [[(1, 'a'), (1, 'd')], [(2, 'b'), (2, 'c')], [(3, 'e')]]
     
     describe "uniqueFstMaxSnd" $ do
-        -- it "On empty list" $ do
-        --     uniqueFstMaxSnd [] `shouldBe` []
         it "On single element list" $
             uniqueFstMaxSnd [(1, "a")] `shouldBe` [(1, "a")]
         it "On list with identical elements" $
@@ -103,3 +101,21 @@ spec = do
             scale 0 1 100 0.5 `shouldBe` 50
         it "With large values" $
             scale 0 1000000 100 500000 `shouldBe` 50
+
+    describe "toBraille" $ do
+        it "Top left" $
+            toBraille (0, 0.875) `shouldBe` 0x01  -- ⠁ 
+        it "Top right" $
+            toBraille (0.9, 0.875) `shouldBe` 0x08  -- ⠈ 
+        it "Middle upper left" $
+            toBraille (0, 0.6) `shouldBe` 0x02  -- ⠂ 
+        it "Middle upper right" $
+            toBraille (0.9, 0.6) `shouldBe` 0x10  -- ⠐ 
+        it "Middle lower left" $
+            toBraille (0, 0.4) `shouldBe` 0x04  -- ⠂ 
+        it "Middle lower right" $
+            toBraille (0.9, 0.4) `shouldBe` 0x20  -- ⠠ 
+        it "Bottom left" $
+            toBraille (0, 0.1) `shouldBe` 0x40 --  ⡀
+        it "Bottom right" $
+            toBraille (0.9,0.1) `shouldBe` 0x80 -- ⢀

@@ -3,13 +3,15 @@ module Brick.Widgets.Plot.Simple (
     scatterWidget',
     areaWidget,
     areaWidget',
-    candleWidget,
+    candleWidget',
+    scatterBrailleWidget,
+    scatterBrailleWidget'
 ) where
 
 import Lens.Micro ((^.))
 import Brick.Types 
 
-import Brick.Widgets.Plot.Core (scatter, scatter', area, area', candle, toWidget)
+import Brick.Widgets.Plot.Core
 import Brick.Widgets.Plot.Types
 
 widgetTemplate :: CanvasState a -> Widget ()
@@ -23,11 +25,17 @@ scatterWidget opts = widgetTemplate . scatter opts
 scatterWidget' :: [Point] -> Widget ()
 scatterWidget' = widgetTemplate . scatter'
 
+scatterBrailleWidget :: [Option] -> [Point] -> Widget ()
+scatterBrailleWidget opts = widgetTemplate . scatterBraille opts
+
+scatterBrailleWidget' :: [Point] -> Widget ()
+scatterBrailleWidget' = widgetTemplate . scatterBraille'
+
 areaWidget :: [Option] -> [Point] -> Widget ()
 areaWidget op = widgetTemplate . area op
 
 areaWidget' :: [Point] -> Widget ()
 areaWidget' = widgetTemplate . area'
 
-candleWidget :: [Candle] -> Widget ()
-candleWidget = widgetTemplate . candle
+candleWidget' :: [Candle] -> Widget ()
+candleWidget' = widgetTemplate . candle'

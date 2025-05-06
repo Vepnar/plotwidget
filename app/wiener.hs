@@ -20,4 +20,4 @@ main = do
     diff <- runRVar (replicateM 5000 (normal 0 1)) mwc
     let price = foldl (\(x:xs) s -> (x+s):x:xs) [0] diff 
         cds = constructCandle price
-    simpleMain $ candleWidget cds
+    simpleMain $ candleWidget' cds

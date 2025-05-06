@@ -35,7 +35,7 @@ data St =
 makeLenses ''St
 
 wave :: Int -> CanvasState ()
-wave n = area [Marker '*', Primary V.red] sinWave >> area' cosWave >> return ()
+wave n = area [Marker '*', Primary V.brightRed, Secondary V.red] sinWave >> area' cosWave >> return ()
     where 
         x = [start, (start +0.01) .. end]
         end = 6.28 + start
